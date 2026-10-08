@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Permainan Tradisional Kadazandusun Interaktif</title>
+    <style>
+        :root {
+            --primary: #8b263e;
+            --secondary: #d4a373;
+            --dark: #2b2b2b;
+            --light: #fefae0;
+            --accent: #588157;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f1de;
+            color: var(--dark);
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        header {
+            background: linear-gradient(135deg, var(--primary), #5a1827);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            border-bottom: 5px solid var(--secondary);
+        }
+        h1 { margin: 0 0 5px 0; font-size: 1.8rem; }
+        p { margin: 0; font-size: 1rem; opacity: 0.9; }
+        
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background-color: #dda15e;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .tab-btn:hover { background-color: #bc6c25; transform: translateY(-2px); }
+        .tab-btn.active { background-color: var(--primary); border-bottom: 3px solid var(--secondary); }
+
+        .section { display: none; }
+        .section.active { display: block; }
+
+        /* KAD IMBAS */
+        .flashcards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .flashcard {
+            background-color: white;
+            height: 220px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            perspective: 1000px;
+            border: 2px solid var(--secondary);
+        }
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .flashcard.flipped .card-inner { transform: rotateY(180deg); }
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            box-sizing: border-box;
+            border-radius: 10px;
+        }
+        .card-front {
+            background: #fff;
+            color: var(--primary);
+        }
+        .card-front h3 { margin: 0 0 10px 0; font-size: 1.4rem; }
+        .card-front p { color: #666; font-size: 0.9rem; }
+        .card-back {
+            background: var(--primary);
+            color: white;
+            transform: rotateY(180deg);
+        }
+        .card-back h4 { margin: 0 0 8px 0; font-size: 1.1rem; color: var(--secondary); }
+        .card-back p { font-size: 0.9rem; line-height: 1.4; }
+
+        /* KUIZ */
+        .quiz-box {
+            background: white;
+            max-width: 650px;
+            margin: 0 auto;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 2px solid var(--secondary);
+            text-align: left;
+        }
+        .quiz-question { font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; color: var(--primary); }
+        .options-list { display: flex; flex-direction: column; gap: 10px; }
+        .option-btn {
+            background: #fdf0d5;
+            border: 2px solid #e07a5f;
+            padding: 12px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            text-align: left;
+            transition: 0.2s;
+            font-weight: 500;
+        }
+        .option-btn:hover { background: #e07a5f; color: white; }
+        .option-btn.correct { background: #81b29a !important; color: white; border-color: #386641; }
+        .option-btn.wrong { background: #e05353 !important; color: white; border-color: #9b2226; }
+        
+        .action-btn {
+            margin-top: 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .action-btn:hover { opacity: 0.9; }
+
+        /* NOTA EDIT */
+        .edit-note {
+            margin-top: 30px;
+            font-size: 0.85rem;
+            color: #555;
+            background: #fff3cd;
+            padding: 10px;
+            border-radius: 6px;
+            display: inline-block;
+            border: 1px solid #ffeeba;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>BOROS KADAZANDUSUN: PERMAINAN TRADISIONAL</h1>
+        <p>Teroka kad imbas dan uji minda anda!</p>
+    </header>
+
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab(event, 'flashcards')">Kad Imbas</button>
+        <button class="tab-btn" onclick="switchTab(event, 'quiz')">Kuiz Minda</button>
+    </div>
+
+    <!-- SEKSYEN 1: KAD IMBAS -->
+    <div id="flashcards" class="section active">
+        <p style="margin-bottom: 15px; color: #555; font-style: italic;">Klik pada kad untuk melihat penerangan ringkas.</p>
+        <div class="flashcards-container">
+            <!-- Kad 1: RAMPANAU -->
+            <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <h3>RAMPANAU</h3>
+                        <p>(Menalai Buluh)</p>
+                        <span style="font-size:0.8rem; color:#8b263e; margin-top:auto;">[Klik untuk lihat terbalik]</span>
+                    </div>
+                    <div class="card-back">
+                        <h4>Kegunaan & Tujuan</h4>
+                        <p>Permainan berjalan menggunakan egrang buluh. Menguji keseimbangan dan kepantasan peserta.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kad 2: MONOPOG -->
+            <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <h3>MONOPOG</h3>
+                        <p>(Menarik Tali / Rotan)</p>
+                        <span style="font-size:0.8rem; color:#8b263e; margin-top:auto;">[Klik untuk lihat terbalik]</span>
+                    </div>
+                    <div class="card-back">
+                        <h4>Kegunaan & Tujuan</h4>
+                        <p>Permainan pasukan menarik tali atau rotan. Menguji kekuatan fizikal dan semangat berpasukan.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kad 3: MOMOLOSITIK -->
+            <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <h3>MOMOLOSITIK</h3>
+                        <p>(Melastik)</p>
+                        <span style="font-size:0.8rem; color:#8b263e; margin-top:auto;">[Klik untuk lihat terbalik]</span>
+                    </div>
+                    <div class="card-back">
+                        <h4>Kegunaan & Tujuan</h4>
+                        <p>Kemahiran melastik menggunakan lastik tradisional. Menguji ketepatan sasaran dan tumpuan.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kad 4: SIPA / MIPAS -->
+            <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <h3>SIPA / MIPAS</h3>
+                        <p>(Sepak Takraw Tradisional)</p>
+                        <span style="font-size:0.8rem; color:#8b263e; margin-top:auto;">[Klik untuk lihat terbalik]</span>
+                    </div>
+                    <div class="card-back">
+                        <h4>Kegunaan & Tujuan</h4>
+                        <p>Sukan menimang dan menyepak bola rotan, seiras Sepak Takraw. Menguji ketangkasan fizikal.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEKSYEN 2: KUIZ -->
+    <div id="quiz" class="section">
+        <div class="quiz-box">
+            <div id="quiz-container">
+                <div id="question-text" class="quiz-question">Soalan akan muncul di sini...</div>
+                <div id="options-container" class="options-list"></div>
+            </div>
+            <div id="quiz-result" style="text-align: center; display: none;">
+                <h3 id="score-title" style="color: var(--primary);">Kuiz Selesai!</h3>
+                <p id="score-text" style="font-size: 1.1rem; margin: 10px 0;"></p>
+                <button class="action-btn" onclick="restartQuiz()">Cuba Lagi</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="edit-note">
+        💡 <strong>Cara Edit:</strong> Anda boleh buka fail kod ini menggunakan sebarang aplikasi teks (Notepad / VS Code) untuk mengubah ejaan, menambah perkataan baru, atau menukar soalan kuiz dengan mudah!
+    </div>
+
+    <script>
+        // Fungsi untuk menukar tab menu
+        function switchTab(evt, sectionId) {
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(sec => sec.classList.remove('active'));
+            
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(sectionId).classList.add('active');
+            evt.currentTarget.classList.add('active');
+        }
+
+        // Data Soalan Kuiz (Anda boleh ubah teks di sini jika mahu tambah/ubah soalan)
+        const quizData = [
+            {
+                question: "Apakah maksud permainan tradisional 'Rampanau'?",
+                options: ["Menarik tali", "Menalai buluh (Egrang)", "Melastik burung", "Menyepak bola rotan"],
+                answer: 1
+            },
+            {
+                question: "Permainan yang menguji kekuatan pasukan dengan menarik rotan/tali dikenali sebagai:",
+                options: ["Momolositik", "Monopog", "Sipa", "Rampanau"],
+                answer: 1
+            },
+            {
+                question: "Apakah fungsi utama permainan 'Momolositik'?",
+                options: ["Menguji ketepatan melastik", "Menguji kelajuan berlari", "Menguji keseimbangan", "Menimang bola"],
+                answer: 0
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+
+        function loadQuiz() {
+            const qText = document.getElementById("question-text");
+            const optContainer = document.getElementById("options-container");
+            const quizContainer = document.getElementById("quiz-container");
+            const quizResult = document.getElementById("quiz-result");
+
+            quizContainer.style.display = "block";
+            quizResult.style.display = "none";
+
+            if (currentQuestion < quizData.length) {
+                const currentQ = quizData[currentQuestion];
+                qText.innerText = `Soalan ${currentQuestion + 1}: ${currentQ.question}`;
+                optContainer.innerHTML = "";
+
+                currentQ.options.forEach((opt, index) => {
+                    const btn = document.createElement("button");
+                    btn.classList.add("option-btn");
+                    btn.innerText = opt;
+                    btn.onclick = () => selectOption(index, btn);
+                    optContainer.appendChild(btn);
+                });
+            } else {
+                quizContainer.style.display = "none";
+                quizResult.style.display = "block";
+                document.getElementById("score-text").innerText = `Skor anda: ${score} daripada ${quizData.length}`;
+            }
+        }
+
+        function selectOption(selectedIndex, buttonElement) {
+            const currentQ = quizData[currentQuestion];
+            const allButtons = document.querySelectorAll(".option-btn");
+
+            // Disable semua butang selepas dipilih
+            allButtons.forEach(btn => btn.disabled = true);
+
+            if (selectedIndex === currentQ.answer) {
+                buttonElement.classList.add("correct");
+                score++;
+            } else {
+                buttonElement.classList.add("wrong");
+                allButtons[currentQ.answer].classList.add("correct");
+            }
+
+            setTimeout(() => {
+                currentQuestion++;
+                loadQuiz();
+            }, 1200);
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            loadQuiz();
+        }
+
+        // Mulakan kuiz semasa dimuatkan
+        loadQuiz();
+    </script>
+</body>
+</html>
